@@ -94,9 +94,22 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         });
     }
 
+    // After launchBillingFlow(), called by Google Play
     @Override
     public void onPurchasesUpdated(int responseCode, @Nullable List<Purchase> purchases) {
         // Here, if user click to TAP-BUY, we will retrieve data here
-        Toast.makeText(MainActivity.this, "Purchase item: "+purchases.size(), Toast.LENGTH_SHORT).show();
+        if (responseCode == BillingClient.BillingResponse.OK && purchases != null) {
+            Toast.makeText(MainActivity.this, "Purchase item: "+purchases.size(), Toast.LENGTH_SHORT).show();
+//            for (Purchase purchase : purchases) {
+//                handlePurchase(purchase);
+//            }
+        } else if (responseCode == BillingClient.BillingResponse.USER_CANCELED) {
+            // Handle an error caused by a user cancelling the purchase flow.
+            Toast.makeText(MainActivity.this, "User Canceled", Toast.LENGTH_SHORT).show();
+        } else {
+            // Handle any other error codes.
+            Toast.makeText(MainActivity.this, "Error Code: " +responseCode, Toast.LENGTH_SHORT).show();
+        }
+
     }
 }

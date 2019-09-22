@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingFlowParams;
@@ -48,7 +49,8 @@ public class MyProductAdapter extends RecyclerView.Adapter<MyProductAdapter.MyVi
                 BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                         .setSkuDetails(skuDetailsList.get(i))
                         .build();
-                billingClient.launchBillingFlow(mainActivity,billingFlowParams);
+                // TODO: add some response code checks to launchBillingFlow
+                billingClient.launchBillingFlow(mainActivity, billingFlowParams);
             }
         });
     }
