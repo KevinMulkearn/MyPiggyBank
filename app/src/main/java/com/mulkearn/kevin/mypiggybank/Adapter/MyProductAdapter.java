@@ -49,8 +49,12 @@ public class MyProductAdapter extends RecyclerView.Adapter<MyProductAdapter.MyVi
                 BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                         .setSkuDetails(skuDetailsList.get(i))
                         .build();
-                // TODO: add some response code checks to launchBillingFlow
-                billingClient.launchBillingFlow(mainActivity, billingFlowParams);
+                int responseCode = billingClient.launchBillingFlow(mainActivity, billingFlowParams);
+                if (responseCode == BillingClient.BillingResponse.OK) {
+                    Toast.makeText(mainActivity, "Billing Flow OK", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(mainActivity, "Billing Flow Error: " + responseCode, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
