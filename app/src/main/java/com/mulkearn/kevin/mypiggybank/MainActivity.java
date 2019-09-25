@@ -1,12 +1,16 @@
 package com.mulkearn.kevin.mypiggybank;
 
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.billingclient.api.BillingClient;
@@ -25,9 +29,14 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements PurchasesUpdatedListener {
 
     BillingClient billingClient;
+    SharedPreferences sharedPref;
+    DialogInterface.OnClickListener dialogClickListener;
 
     Button loadProduct;
+    TextView balanceDisplay;
     RecyclerView recyclerProduct;
+
+    static int balance = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +45,19 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
         setupBillingClient();
 
-        // View
+        // Set balance amount
+        sharedPref = getSharedPreferences("balance_sum", MODE_PRIVATE);
+        balance = sharedPref.getInt("sum", 0);
+
+        // View setup
         loadProduct = (Button)findViewById(R.id.btn_load_product);
+        balanceDisplay = (TextView)findViewById(R.id.balance_display);
         recyclerProduct = (RecyclerView)findViewById(R.id.recycler_product);
         recyclerProduct.setHasFixedSize(true);
         recyclerProduct.setLayoutManager(new LinearLayoutManager(this));
+        balanceDisplay.setText("Balance: €" + balance);
 
-        // Event
+        // Button click listener
         loadProduct.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -67,6 +82,28 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 }
             }
         });
+
+        // Dialog pop-up click listener
+        dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        // Yes button clicked, reset balance to zero
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        editor.clear();
+                        editor.apply();
+                        balance = 0;
+                        balanceDisplay.setText("Balance: €" + balance);
+                        Toast.makeText(MainActivity.this, "Reset", Toast.LENGTH_SHORT).show();
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        // No button clicked, do nothing
+                        break;
+                }
+            }
+        };
     }
 
     private void loadProductToRecyclerView(List<SkuDetails> skuDetailsList) {
@@ -101,12 +138,21 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             for (Purchase purchase : purchases) {
                 // Purchase must be consumed to repurchase
                 Toast.makeText(MainActivity.this, "Purchased: " + purchase.getSku(), Toast.LENGTH_SHORT).show();
+                if (purchase.getSku().equals("one_euro")){
+                    balance += 1;
+                } else if (purchase.getSku().equals("ten_euro")) {
+                    balance += 10;
+                }
                 billingClient.consumeAsync(purchase.getPurchaseToken(), new ConsumeResponseListener() {
                     @Override
                     public void onConsumeResponse(int responseCode, String purchaseToken) {
                         Toast.makeText(MainActivity.this, "Clearing Token: " + purchaseToken, Toast.LENGTH_SHORT).show();
                     }
                 });
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("sum", balance);
+                editor.apply();
+                balanceDisplay.setText("Balance: €" + balance);
             }
         } else if (responseCode == BillingClient.BillingResponse.USER_CANCELED) {
             // Handle an error caused by a user cancelling the purchase flow.
@@ -115,6 +161,13 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             // Handle any other error codes.
             Toast.makeText(MainActivity.this, "Error Code: " + responseCode, Toast.LENGTH_SHORT).show();
         }
+
+    }
+
+    public void ResetBalance(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Reset Balance?").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
 
     }
 }

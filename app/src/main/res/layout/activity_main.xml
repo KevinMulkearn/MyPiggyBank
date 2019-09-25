@@ -18,6 +18,7 @@
     </android.support.v7.widget.RecyclerView>
 
     <TextView
+        android:id="@+id/balance_display"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.2"
@@ -28,7 +29,8 @@
         app:autoSizeMaxTextSize="100sp"
         app:autoSizeStepGranularity="2sp"
         android:background="#7CD67C"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="10dp"
+        android:onClick="ResetBalance">
     </TextView>
 
     <Button
